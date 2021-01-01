@@ -23,6 +23,7 @@ class AlienInvasion:
         while True:
             self._check_events()
             self.ship.update()
+            self.bullets.update()
             self._update_bullets()
             self._update_aliens()
             self._update_screen()
@@ -38,21 +39,21 @@ class AlienInvasion:
 
 
     def _check_keydown_events(self, event):
-            if event.key == pygame.K_RIGHT:
-                self.ship.moving_right = True
-            elif event.key == pygame.K_LEFT:
-                self.ship.moving_left = True
-            elif event.key == pygame.K_q:
-                sys.exit()
-            elif event.key == pygame.K_SPACE:
-                self._fire_bullet()
+        if event.key == pygame.K_RIGHT:
+            self.ship.moving_right = True
+        elif event.key == pygame.K_LEFT:
+            self.ship.moving_left = True
+        elif event.key == pygame.K_q:
+            sys.exit()
+        elif event.key == pygame.K_SPACE:
+            self._fire_bullet()
 
 
     def _check_keyup_events(self, event):
-            if event.key == pygame.K_RIGHT:
-                self.ship.moving_right = False
-            elif event.key == pygame.K_LEFT:
-                self.ship.moving_left = False
+        if event.key == pygame.K_RIGHT:
+            self.ship.moving_right = False
+        elif event.key == pygame.K_LEFT:
+            self.ship.moving_left = False
                 
     def _fire_bullet(self):
         if len(self.bullets) < self.settings.bullets_allowed:
@@ -60,11 +61,18 @@ class AlienInvasion:
             self.bullets.add(new_bullet)
     
     def _update_bullets(self):
-        self.bullets.update()
+        self._check_fleet_edges()
+        self.aliens.update()
         for bullet in self.bullets.copy():
             if bullet.rect.bottom <= 0:
                 self.bullets.remove(bullet)
-            collisions = pygame.sprite.groupcollide(self.bullets,self.aliens,True, True)
+        self._check_bullet_alien_collisions()
+
+    def _check_bullet_alien_collisions(self):        
+        collisions = pygame.sprite.groupcollide(self.bullets,self.aliens,True, True)
+        if not self.aliens:
+            self.bullets.empty()
+            self._create_fleet()
     
     def _create_fleet(self):
         alien = Alien(self)
@@ -90,7 +98,7 @@ class AlienInvasion:
         for alien in self.aliens.sprites():
             if alien.check_edges():
                 self._change_fleet_direction()
-            break
+                break
 
     def _change_fleet_direction(self):
         for alien in self.aliens.sprites():
@@ -111,4 +119,4 @@ class AlienInvasion:
 
 if __name__ == "__main__":
     ai = AlienInvasion()
-    ai.run_game()    
+    ai.run_game()
